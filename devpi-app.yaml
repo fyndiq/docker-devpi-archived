@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: devpi
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3141
+    targetPort: 3141
+  selector:
+    app: devpi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: devpi
+spec:
+  template:
+    metadata:
+      labels:
+        app: devpi
+    spec:
+      volumes:
+        - name: data
+          emptyDir: {}
+      containers:
+      - name: devpi
+        image: arthurk/docker-devpi
+        ports:
+        - containerPort: 3141
+        volumeMounts:
+        - mountPath: /data
+          name: data
