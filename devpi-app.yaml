@@ -5,8 +5,8 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 3141
-    targetPort: 3141
+  - port: 8080
+    targetPort: 80
   selector:
     app: devpi
 ---
@@ -23,6 +23,9 @@ spec:
       volumes:
         - name: data
           emptyDir: {}
+        - name: nginx-htpasswd
+          secret:
+            secretName: nginx-htpasswd
       containers:
       - name: devpi
         image: arthurk/docker-devpi
@@ -31,3 +34,11 @@ spec:
         volumeMounts:
         - mountPath: /data
           name: data
+      - name: devpi-nginx
+        image: arthurk/devpi-nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: secret-volume
+          mountPath: /etc/nginx-htpasswd
+          readOnly: true
