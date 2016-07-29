@@ -28,14 +28,14 @@ spec:
             secretName: nginx-htpasswd
       containers:
       - name: devpi
-        image: arthurk/docker-devpi
+        image: fyndiq/devpi:latest
         ports:
         - containerPort: 3141
         volumeMounts:
         - mountPath: /data
           name: data
       - name: devpi-nginx
-        image: arthurk/devpi-nginx:latest
+        image: fyndiq/devpi-nginx:latest
         ports:
         - containerPort: 80
         volumeMounts:
