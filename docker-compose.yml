@@ -6,5 +6,3 @@ services:
       - ./data:/data
     ports:
       - 3141:3141
-    environment:
-      - DEVPI_PASSWORD=
