@@ -5,7 +5,7 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 8080
+  - port: 80
     targetPort: 80
   selector:
     app: devpi
@@ -21,11 +21,13 @@ spec:
         app: devpi
     spec:
       volumes:
-        - name: data
-          emptyDir: {}
-        - name: nginx-htpasswd
-          secret:
-            secretName: nginx-htpasswd
+      - name: data
+        gcePersistentDisk:
+          pdName: devpi-disk
+          fsType: ext4
+      - name: nginx-htpasswd
+        secret:
+          secretName: nginx-htpasswd
       containers:
       - name: devpi
         image: fyndiq/docker-devpi:latest
