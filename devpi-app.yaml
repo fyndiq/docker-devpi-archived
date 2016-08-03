@@ -36,6 +36,22 @@ spec:
         volumeMounts:
         - mountPath: /data
           name: data
+        env:
+        - name: DEVPI_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: devpi
+              key: root_password
+        - name: DEVPI_USER
+          valueFrom:
+            secretKeyRef:
+              name: devpi
+              key: user
+        - name: DEVPI_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: devpi
+              key: user_password
       - name: devpi-nginx
         image: fyndiq/docker-devpi-nginx:latest
         ports:

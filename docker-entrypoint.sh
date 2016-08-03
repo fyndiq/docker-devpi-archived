@@ -4,9 +4,9 @@ set -e
 : "${DEVPI_PORT:=3141}"
 : "${DEVPI_SERVERDIR:=/data/server}"
 : "${DEVPI_CLIENTDIR:=/data/client}"
-: "${DEVPI_ROOT_PASSWORD:=}"
-: "${DEVPI_USER:=testuser}"
-: "${DEVPI_USER_PASSWORD:=}"
+: "${DEVPI_ROOT_PASSWORD:=123}"
+: "${DEVPI_USER_NAME:=testuser}"
+: "${DEVPI_USER_PASSWORD:=456}"
 : "${DEVPI_USER_INDEX:=dev}"
 
 if [ "$1" = "devpi-server" ]; then
@@ -24,8 +24,8 @@ if [ "$1" = "devpi-server" ]; then
         devpi logoff
 
         # register new user and create index
-        devpi user -c "${DEVPI_USER}" password="${DEVPI_USER_PASSWORD}"
-        devpi login "${DEVPI_USER}" --password="${DEVPI_USER_PASSWORD}"
+        devpi user -c "${DEVPI_USER_NAME}" password="${DEVPI_USER_PASSWORD}"
+        devpi login "${DEVPI_USER_NAME}" --password="${DEVPI_USER_PASSWORD}"
         devpi index -c "${DEVPI_USER_INDEX}" bases=root/pypi
 
         # stop server
