@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-: "${DEVPI_PORT:=3141}"
 : "${DEVPI_SERVERDIR:=/data/server}"
 : "${DEVPI_CLIENTDIR:=/data/client}"
 : "${DEVPI_ROOT_PASSWORD:=123}"
@@ -14,9 +13,9 @@ if [ "$1" = "devpi-server" ]; then
         echo "[RUN]: Initializing devpi-server"
 
         # start server and connect
-        devpi-server --start --host 127.0.0.1 --port "${DEVPI_PORT}"
+        devpi-server --start --host 127.0.0.1 --port 3141
         devpi-server --status
-        devpi use http://localhost:"${DEVPI_PORT}"
+        devpi use http://localhost:3141
 
         # set password for root user
         devpi login root --password=""
@@ -27,6 +26,7 @@ if [ "$1" = "devpi-server" ]; then
         devpi user -c "${DEVPI_USER_NAME}" password="${DEVPI_USER_PASSWORD}"
         devpi login "${DEVPI_USER_NAME}" --password="${DEVPI_USER_PASSWORD}"
         devpi index -c "${DEVPI_USER_INDEX}" bases=root/pypi
+        devpi logoff
 
         # stop server
         devpi-server --stop
@@ -34,7 +34,7 @@ if [ "$1" = "devpi-server" ]; then
     fi
 
     echo "[RUN]: Starting devpi-server"
-    exec devpi-server --restrict-modify root --host 0.0.0.0 --port "${DEVPI_PORT}"
+    exec devpi-server --restrict-modify root --host 0.0.0.0 --port 3141
 fi
 
 exec "$@"

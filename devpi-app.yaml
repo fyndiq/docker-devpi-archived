@@ -27,10 +27,19 @@ spec:
           fsType: ext4
       - name: nginx-htpasswd
         secret:
-          secretName: nginx-htpasswd
+          secretName: devpi
+          items:
+          - key: htpasswd
+            path: htpasswd
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+          items:
+            - key: nginx.conf
+              path: nginx.conf
       containers:
       - name: devpi
-        image: fyndiq/docker-devpi:latest
+        image: fyndiq/docker-devpi
         ports:
         - containerPort: 3141
         volumeMounts:
@@ -41,22 +50,24 @@ spec:
           valueFrom:
             secretKeyRef:
               name: devpi
-              key: root_password
-        - name: DEVPI_USER
+              key: root-password
+        - name: DEVPI_USER_NAME
           valueFrom:
             secretKeyRef:
               name: devpi
-              key: user
+              key: user-name
         - name: DEVPI_USER_PASSWORD
           valueFrom:
             secretKeyRef:
               name: devpi
-              key: user_password
-      - name: devpi-nginx
-        image: fyndiq/docker-devpi-nginx:latest
+              key: user-password
+      - name: nginx
+        image: nginx:1.11.1-alpine
         ports:
         - containerPort: 80
         volumeMounts:
         - name: nginx-htpasswd
           mountPath: /etc/nginx-htpasswd
           readOnly: true
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
