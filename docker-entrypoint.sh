@@ -1,16 +1,22 @@
 #!/bin/sh
 set -e
 
-: "${DEVPI_SERVERDIR:=/data/server}"
-: "${DEVPI_CLIENTDIR:=/data/client}"
-: "${DEVPI_ROOT_PASSWORD:=123}"
-: "${DEVPI_USER_NAME:=testuser}"
-: "${DEVPI_USER_PASSWORD:=456}"
-: "${DEVPI_USER_INDEX:=dev}"
+: "${DEVPI_SERVERDIR:="/data/server"}"
+: "${DEVPI_CLIENTDIR:="/data/client"}"
+
+echo "DEVPI_SERVERDIR is ${DEVPI_SERVERDIR}"
+echo "DEVPI_CLIENTDIR is ${DEVPI_CLIENTDIR}"
+
+export DEVPI_SERVERDIR DEVPI_CLIENTDIR
 
 if [ "$1" = "devpi-server" ]; then
     if [ ! -f "${DEVPI_SERVERDIR}/.serverversion" ]; then
-        echo "[RUN]: Initializing devpi-server"
+        echo "Initializing devpi-server"
+
+        if [ -z "$DEVPI_ROOT_PASSWORD" ]; then
+            echo >&2 'error: you need to specify DEVPI_ROOT_PASSWORD'
+            exit 1
+        fi
 
         # start server and connect
         devpi-server --start --host 127.0.0.1 --port 3141
@@ -22,18 +28,26 @@ if [ "$1" = "devpi-server" ]; then
         devpi user -m root password="${DEVPI_ROOT_PASSWORD}"
         devpi logoff
 
-        # register new user and create index
-        devpi user -c "${DEVPI_USER_NAME}" password="${DEVPI_USER_PASSWORD}"
-        devpi login "${DEVPI_USER_NAME}" --password="${DEVPI_USER_PASSWORD}"
-        devpi index -c "${DEVPI_USER_INDEX}" bases=root/pypi
-        devpi logoff
+        # create user and index
+        if [ "$DEVPI_USER" ] && [ "$DEVPI_PASSWORD" ] && [ "$DEVPI_INDEX" ]; then
+            echo "Creating user '$DEVPI_USER' and index '$DEVPI_INDEX'"
+
+            devpi user -c "${DEVPI_USER}" password="${DEVPI_PASSWORD}"
+            devpi login "${DEVPI_USER}" --password="${DEVPI_PASSWORD}"
+            devpi index -c "${DEVPI_INDEX}" bases=root/pypi
+            devpi logoff
+        else
+            echo "Not creating user/index"
+        fi
 
         # stop server
         devpi-server --stop
         devpi-server --status
+
+        echo 'Init process done. Ready for start up.'
     fi
 
-    echo "[RUN]: Starting devpi-server"
+    echo "Starting devpi-server"
     exec devpi-server --restrict-modify root --host 0.0.0.0 --port 3141
 fi
 

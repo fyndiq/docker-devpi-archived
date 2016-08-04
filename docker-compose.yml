@@ -5,4 +5,9 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - 3141:3141
+      - "3141:3141"
+    environment:
+      - DEVPI_ROOT_PASSWORD=test
+      - DEVPI_USER=test
+      - DEVPI_PASSWORD=test
+      - DEVPI_INDEX=dev
