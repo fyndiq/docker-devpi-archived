@@ -39,7 +39,7 @@ spec:
               path: nginx.conf
       containers:
       - name: devpi
-        image: fyndiq/docker-devpi:v3
+        image: fyndiq/docker-devpi:v13
         ports:
         - containerPort: 3141
         volumeMounts:
@@ -51,16 +51,18 @@ spec:
             secretKeyRef:
               name: devpi
               key: root-password
-        - name: DEVPI_USER_NAME
+        - name: DEVPI_USER
           valueFrom:
             secretKeyRef:
               name: devpi
-              key: user-name
-        - name: DEVPI_USER_PASSWORD
+              key: user
+        - name: DEVPI_PASSWORD
           valueFrom:
             secretKeyRef:
               name: devpi
-              key: user-password
+              key: password
+        - name: DEVPI_INDEX
+          value: dev
       - name: nginx
         image: nginx:1.11.1-alpine
         ports:
