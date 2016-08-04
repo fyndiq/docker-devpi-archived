@@ -39,7 +39,7 @@ spec:
               path: nginx.conf
       containers:
       - name: devpi
-        image: fyndiq/docker-devpi:v13
+        image: fyndiq/docker-devpi:4.1.0
         ports:
         - containerPort: 3141
         volumeMounts:

@@ -5,8 +5,8 @@ RUN addgroup -S devpi && adduser -S -G devpi devpi
 ENV DEVPI_SERVER_VERSION=4.1.0 \
     DEVPI_CLIENT_VERSION=2.6.4
 
-RUN pip install --no-cache-dir devpi-server=="$DEVPI_SERVER_VERSION" \
-                               devpi-client=="$DEVPI_CLIENT_VERSION"
+RUN pip install --no-cache-dir devpi-server=="${DEVPI_SERVER_VERSION}" \
+                               devpi-client=="${DEVPI_CLIENT_VERSION}"
 
 RUN mkdir /data && chown devpi:devpi /data
 VOLUME /data
