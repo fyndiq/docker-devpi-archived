@@ -20,6 +20,14 @@ kubectl create configmap nginx-conf --from-file=nginx.conf
 
 NOTE: htpasswd and secret username/password need to be the same due to a bug in devpi
 
+## Storage
+
+You need to create a disk called `devpi-disk` in compute:
+
+```
+gcloud compute disks create --size=10GB devpi-disk
+```
+
 ## Usage
 
 Start the pods with: `kubectl create -f devpi-app.yaml`
