@@ -13,7 +13,12 @@ Example:
 
 In Kubernetes, you'll need to create a secret from this file:
 
-`kubectl create secret generic nginx-htpasswd --from-file=htpasswd`
+```
+kubectl create secret generic devpi --from-literal=root-password=mypassword --from-literal=user=testuser --from-literal=password=testpassword --from-file=htpasswd
+kubectl create configmap nginx-conf --from-file=nginx.conf
+```
+
+NOTE: htpasswd and secret username/password need to be the same due to a bug in devpi
 
 ## Usage
 
