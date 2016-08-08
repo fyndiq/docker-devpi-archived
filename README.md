@@ -61,21 +61,23 @@ have the name `devpi-disk`.
 
 	gcloud compute disks create --size=10GB devpi-disk
 
-### Deploy
+### Deployment
 
-To create/deploy the pod run:
+To deploy the service:
 
 	kubectl create -f devpi-app.yaml
 
-To get the external ip address (listed under `LoadBalancer Ingress`) run:
+To get the external ip address (listed under `LoadBalancer Ingress`):
 
 	kubectl describe -f devpi-app.yaml
 
-### Update
-
-To update the image run:
+To update the service:
 
 	kubectl apply -f devpi-app.yaml
+
+To delete the service:
+
+    kubectl delete -f devpi-app.yaml
 
 ### Testing the index
 
