@@ -18,6 +18,8 @@ modify indexes)
 * `DEVPI_PASSWORD`: Password
 * `DEVPI_INDEX`: Index name (default: `dev`. The index where custom packages can be uploaded)
 
+Most of them will be created via Kubernetes Secrets (shown below).
+
 ## Running locally (docker-compose)
 
 To test the setup on a local machine run it with [docker-compose](https://docs.docker.com/compose/):
@@ -25,8 +27,8 @@ To test the setup on a local machine run it with [docker-compose](https://docs.d
     docker-compose up
 
 Note that compared to the Kubernetes setup this will not start nginx.
-The server is running at `http://localhost:3141`. User credentials are in
-`docker-compose.yml`.
+The server is running at `http://localhost:3141`. User credentials are stored
+in `docker-compose.yml`.
 
 ## Running on Google Container Engine
 
@@ -38,11 +40,11 @@ available.
 
 ### Setup
 
-The HTTP Basic Auth htpasswd file needs to be generated, but note that due to a [issue with devpi-client](https://bitbucket.org/hpk42/devpi/issues/331/basic-auth-devpi), the http auth and devpi auth credentials need to be the same.
+First, the HTTP Basic Auth htpasswd file needs to be generated. Note that due to a [issue with devpi-client](https://bitbucket.org/hpk42/devpi/issues/331/basic-auth-devpi), the http auth and devpi auth credentials need to be the same.
 
     htpasswd -bn testuser testpassword > htpasswd
 
-Then the Kubernetes secret can be created:
+The Kubernetes Secret can be created with the following command:
 
 	kubectl create secret generic devpi \
         --from-literal=root-password=pleasechangeme \
@@ -50,12 +52,9 @@ Then the Kubernetes secret can be created:
 		--from-literal=password=testpassword \
 		--from-file=htpasswd
 
-A configmap for nginx needs to be created:
+A configmap for nginx needs to be created (If you want to remove the authentication part and run a publicly available index you can modify the config at this step):
 
 	kubectl create configmap nginx-conf --from-file=nginx.conf
-
-If you want to remove the authentication part and run a publicly available index,
-you can modify the config at this step.
 
 To have persistent storage a Google Compute Disk needs to be created. It must
 have the name `devpi-disk`.
@@ -64,11 +63,11 @@ have the name `devpi-disk`.
 
 ### Deploy
 
-To create the pod:
+To create/deploy the pod run:
 
 	kubectl create -f devpi-app.yaml
 
-To get the external ip address (listed under `LoadBalancer Ingress`):
+To get the external ip address (listed under `LoadBalancer Ingress`) run:
 
 	kubectl describe -f devpi-app.yaml
 
@@ -90,7 +89,7 @@ To configure pip to permanently to use the new index create a `~/.pip/pip.conf` 
 
 ## Example: Building and uploading a Wheel for Pandas
 
-The following example shows how to build a wheel for [Pandas](http://pandas.pydata.org/) and upload it to the index. Make sure you have [devpi-client](https://pypi.python.org/pypi/devpi-client) installed.
+The following example shows how to build a wheel for [Pandas](http://pandas.pydata.org/) and upload it to the index. Make sure you have the [devpi-client](https://pypi.python.org/pypi/devpi-client) installed.
 
     git clone https://github.com/pydata/pandas.git
     cd pandas
