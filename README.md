@@ -54,36 +54,39 @@ To deploy the service:
 
 	kubectl create -f devpi-app.yaml
 
-To get the external ip address (listed under `LoadBalancer Ingress`):
+To check the logs:
 
-	kubectl describe -f devpi-app.yaml
+	kubectl get pods  # to get the pod name e.g. "devpi-2096512311-3s8j2"
+	kubectl logs -f <pod_name>
 
-To update the service:
+To get the external ip address:
 
-	kubectl apply -f devpi-app.yaml
-
-To delete the service:
-
-    kubectl delete -f devpi-app.yaml
+	kubectl get services devpi
 
 ### Testing the index
 
-	pip install -i http://testuser:testpassword@192.168.99.99/myuser/dev/+simple/ --trusted-host 192.168.99.99 Flask
+	pip install -i http://testuser:testpassword@<external_ip>/testuser/dev/+simple/ --trusted-host <external_ip> Flask
 
-To configure pip to permanently to use the new index create a `~/.pip/pip.conf` file with the following content:
+To permanently use the new index create a `~/.pip/pip.conf` file with the following content:
 
 	[global]
-	index-url = http://testuser:testpassword@192.168.99.99/myuser/pypi/+simple/
-	trusted-host = 192.168.99.99
+	index-url = http://testuser:testpassword@<external_ip>/testuser/dev/+simple/
+	trusted-host = <external_ip>
 
 ## Example: Building and uploading a Wheel for Pandas
 
 The following example shows how to build a wheel for [Pandas](http://pandas.pydata.org/) and upload it to the index. Make sure you have the [devpi-client](https://pypi.python.org/pypi/devpi-client) installed.
 
+	pip install cython  # Cython is required to build Pandas
+
     git clone https://github.com/pydata/pandas.git
     cd pandas
-    git checkout v0.16.2
+	git checkout v0.16.2
 
-    devpi use http://testuser:testpassword@192.168.99.99/myuser/dev
-    devpi login myuser --password=testpassword
+    devpi use http://testuser:testpassword@<external_ip>/testuser/dev
+    devpi login testuser --password=testpassword
     devpi upload --formats bdist_wheel
+
+Finally, test the installation by running:
+
+	pip install --no-cache --verbose Pandas==0.16.2	
