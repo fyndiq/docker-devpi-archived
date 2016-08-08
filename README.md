@@ -1,10 +1,14 @@
 # Devpi Server Docker image
 
-This repo contains a docker image for the [devpi](http://doc.devpi.net/latest/) PyPI server along with the configuration files needed for the deployment on [Google Container Engine](https://cloud.google.com/container-engine/) (Kubernetes).
+This repo contains a docker image for the [devpi](http://doc.devpi.net/latest/) PyPI server
+along with the configuration files needed for the deployment on [Google Container Engine](https://cloud.google.com/container-engine/) (Kubernetes).
+The built image is available on Docker Hub: [fyndiq/docker-devpi](https://hub.docker.com/r/fyndiq/docker-devpi/)
 
-The built image is available on Docker Hub at [fyndiq/docker-devpi](https://hub.docker.com/r/fyndiq/docker-devpi/)
+## Running on Google Container Engine
 
-By default a private index will be created that requires HTTP Basic Authentication to access it.
+The configuration for Kubernetes is stored in the `devpi-app.yaml` file. By default
+a private pypi index will be created that requires HTTP Basic Authentication (via nginx)
+to access it.
 
 ## Configuration
 
@@ -18,33 +22,15 @@ modify indexes)
 * `DEVPI_PASSWORD`: Password
 * `DEVPI_INDEX`: Index name (default: `dev`. The index where custom packages can be uploaded)
 
-Most of them will be created via Kubernetes Secrets (shown below).
-
-## Running locally (docker-compose)
-
-To test the setup on a local machine run it with [docker-compose](https://docs.docker.com/compose/):
-
-    docker-compose up
-
-Note that compared to the Kubernetes setup this will not start nginx.
-The server is running at `http://localhost:3141`. User credentials are stored
-in `docker-compose.yml`.
-
-## Running on Google Container Engine
-
-The configuration for Kubernetes is stored in the `devpi-app.yaml` file.
-
-In addition to the devpi-server the pod will include nginx with
-HTTP Basic Authentication configured, so that the server is not publicly
-available.
-
-### Setup
-
-First, the HTTP Basic Auth htpasswd file needs to be generated. Note that due to a [issue with devpi-client](https://bitbucket.org/hpk42/devpi/issues/331/basic-auth-devpi), the http auth and devpi auth credentials need to be the same.
+The user credentials are stored in a Kubernetes secret.
+Before creating one, an htpasswd file (for HTTP Basic Auth) needs to be generated:
 
     htpasswd -bn testuser testpassword > htpasswd
 
-The Kubernetes Secret can be created with the following command:
+Note that due to a [issue with devpi-client](https://bitbucket.org/hpk42/devpi/issues/331/basic-auth-devpi),
+the http auth and devpi auth credentials need to be the same.
+
+The Kubernetes secret can be created with the following command:
 
 	kubectl create secret generic devpi \
         --from-literal=root-password=pleasechangeme \
@@ -52,7 +38,8 @@ The Kubernetes Secret can be created with the following command:
 		--from-literal=password=testpassword \
 		--from-file=htpasswd
 
-A configmap for nginx needs to be created (If you want to remove the authentication part and run a publicly available index you can modify the config at this step):
+A configmap for nginx needs to be created (If you want to remove the authentication
+part and run a publicly available index you can modify the config at this step):
 
 	kubectl create configmap nginx-conf --from-file=nginx.conf
 
