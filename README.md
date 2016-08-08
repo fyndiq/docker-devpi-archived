@@ -1,44 +1,101 @@
 # Devpi Server Docker image
 
-A docker image for devpi-server.
+This repo contains a docker image for the [devpi](http://doc.devpi.net/latest/) PyPI server along with the configuration files needed for the deployment on [Google Container Engine](https://cloud.google.com/container-engine/) (Kubernetes).
 
-## Authentication
+The built image is available on Docker Hub at [fyndiq/docker-devpi](https://hub.docker.com/r/fyndiq/docker-devpi/)
 
-The server is password protected via http basic auth. To log-in you'll
-need to create a htpasswd file at `/etc/nginx-htpasswd/htpasswd`.
+By default a private index will be created that requires HTTP Basic Authentication to access it.
 
-Example:
+## Configuration
 
-`htpasswd -bn testuser testpassword > htpasswd`
+The configuration is specified with the following environment variables:
 
-In Kubernetes, you'll need to create a secret from this file:
+* `DEVPI_SERVERDIR`: Directory for server files (default: `/data/server`)
+* `DEVPI_CLIENTDIR`: Directory for client files  (default: `/data/client`)
+* `DEVPI_ROOT_PASSWORD`: Password for root user (user who can create or 
+modify indexes)
+* `DEVPI_USER`: Username
+* `DEVPI_PASSWORD`: Password
+* `DEVPI_INDEX`: Index name (default: `dev`. The index where custom packages can be uploaded)
 
-```
-kubectl create secret generic devpi --from-literal=root-password=mypassword --from-literal=user=testuser --from-literal=password=testpassword --from-file=htpasswd
-kubectl create configmap nginx-conf --from-file=nginx.conf
-```
+## Running locally (docker-compose)
 
-NOTE: htpasswd and secret username/password need to be the same due to a bug in devpi
+To test the setup on a local machine run it with [docker-compose](https://docs.docker.com/compose/):
 
-## Storage
+    docker-compose up
 
-You need to create a disk called `devpi-disk` in compute:
+Note that compared to the Kubernetes setup this will not start nginx.
+The server is running at `http://localhost:3141`. User credentials are in
+`docker-compose.yml`.
 
-```
-gcloud compute disks create --size=10GB devpi-disk
-```
+## Running on Google Container Engine
 
-## Usage
+The configuration for Kubernetes is stored in the `devpi-app.yaml` file.
 
-Start the pods with: `kubectl create -f devpi-app.yaml`
-Stop the pods with: `kubectl delete -f devpi-app.yaml`
+In addition to the devpi-server the pod will include nginx with
+HTTP Basic Authentication configured, so that the server is not publicly
+available.
 
-To use the index, modify `~/.pip/pip.conf` and change the index url:
+### Setup
 
-```
-[global]
-index-url = http://testuser:testpassword@192.168.99.100:31926/root/pypi/+simple/
+The HTTP Basic Auth htpasswd file needs to be generated, but note that due to a [issue with devpi-client](https://bitbucket.org/hpk42/devpi/issues/331/basic-auth-devpi), the http auth and devpi auth credentials need to be the same.
 
-[install]
-trusted-host = 192.168.99.100
-```
+    htpasswd -bn testuser testpassword > htpasswd
+
+Then the Kubernetes secret can be created:
+
+	kubectl create secret generic devpi \
+        --from-literal=root-password=pleasechangeme \
+		--from-literal=user=testuser \
+		--from-literal=password=testpassword \
+		--from-file=htpasswd
+
+A configmap for nginx needs to be created:
+
+	kubectl create configmap nginx-conf --from-file=nginx.conf
+
+If you want to remove the authentication part and run a publicly available index,
+you can modify the config at this step.
+
+To have persistent storage a Google Compute Disk needs to be created. It must
+have the name `devpi-disk`.
+
+	gcloud compute disks create --size=10GB devpi-disk
+
+### Deploy
+
+To create the pod:
+
+	kubectl create -f devpi-app.yaml
+
+To get the external ip address (listed under `LoadBalancer Ingress`):
+
+	kubectl describe -f devpi-app.yaml
+
+### Update
+
+To update the image run:
+
+	kubectl apply -f devpi-app.yaml
+
+### Testing the index
+
+	pip install -i http://testuser:testpassword@192.168.99.99/myuser/dev/+simple/ --trusted-host 192.168.99.99 Flask
+
+To configure pip to permanently to use the new index create a `~/.pip/pip.conf` file with the following content:
+
+	[global]
+	index-url = http://testuser:testpassword@192.168.99.99/myuser/pypi/+simple/
+	trusted-host = 192.168.99.99
+
+## Example: Building and uploading a Wheel for Pandas
+
+The following example shows how to build a wheel for [Pandas](http://pandas.pydata.org/) and upload it to the index. Make sure you have [devpi-client](https://pypi.python.org/pypi/devpi-client) installed.
+
+    git clone https://github.com/pydata/pandas.git
+    cd pandas
+    git checkout v0.16.2
+
+    devpi use http://testuser:testpassword@192.168.99.99/myuser/dev
+    devpi login myuser --password=testpassword
+    devpi upload --formats bdist_wheel
