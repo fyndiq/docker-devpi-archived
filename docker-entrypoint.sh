@@ -29,16 +29,10 @@ if [ "$1" = "devpi-server" ]; then
         devpi logoff
 
         # create user and index
-        if [ "$DEVPI_USER" ] && [ "$DEVPI_PASSWORD" ] && [ "$DEVPI_INDEX" ]; then
-            echo "Creating user '$DEVPI_USER' and index '$DEVPI_INDEX'"
-
-            devpi user -c "${DEVPI_USER}" password="${DEVPI_PASSWORD}"
-            devpi login "${DEVPI_USER}" --password="${DEVPI_PASSWORD}"
-            devpi index -c "${DEVPI_INDEX}" bases=root/pypi
-            devpi logoff
-        else
-            echo "Not creating user/index"
-        fi
+        devpi user -c "${DEVPI_USER}" password="${DEVPI_PASSWORD}"
+        devpi login "${DEVPI_USER}" --password="${DEVPI_PASSWORD}"
+        devpi index -c "${DEVPI_INDEX}" bases=root/pypi
+        devpi logoff
 
         # stop server
         devpi-server --stop
